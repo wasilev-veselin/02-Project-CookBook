@@ -1,10 +1,10 @@
 import { Router } from "express"
 
 // routes/ - Defines endpoints and the middleware order before controllers.
-export const cookbookRouter = Router()
+export const catalogRouter = Router()
 
 ////////////////////////////////
-// GET /tasks - returns all tasks.
-cookbookRouter.get("/", (req, res, next) => {
-    res.json({ message: "Get all item from catlog" })
+// GET /allRecipe - Get all recipe from catlog.
+catalogRouter.get("/", (req, res) => {
+  res.json({ message: "Get all recipe from catlog" })
 })
