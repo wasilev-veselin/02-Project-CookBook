@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+model User {
+  id           Int              @id @default(autoincrement())
+  email        String           @unique
+  username     String           @unique
+  passwordHash String
+  createdAt    DateTime         @default(now())
+
+  recipes      Recipe[]
+  favorites    FavoriteRecipe[]
+  comments     Comment[]
+  mealPlans    MealPlan[]
+}
+
+model RecipeType {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+
+  recipes Recipe[]
+}
+
+model Recipe {
+  id           Int              @id @default(autoincrement())
+  authorId     Int
+  typeId       Int
+  title        String
+  description  String?
+  instructions String
+  cookingTime  Int
+  difficulty   Difficulty
+  servings     Int?
+  imageUrl     String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  author       User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  type         RecipeType       @relation(fields: [typeId], references: [id])
+  ingredients  Ingredient[]
+  favorites    FavoriteRecipe[]
+  comments     Comment[]
+  mealPlans    MealPlan[]
+
+  @@index([authorId])
+  @@index([typeId])
+  @@index([difficulty])
+}
+
+model Ingredient {
+  id       Int    @id @default(autoincrement())
+  recipeId Int
+  name     String
+  quantity String
+  unit     String?
+
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
+}
+
+model FavoriteRecipe {
+  userId    Int
+  recipeId  Int
+  createdAt DateTime @default(now())
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe    Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, recipeId])
+  @@index([recipeId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  recipeId  Int
+  authorId  Int
+  content   String
+  rating    Int
+  createdAt DateTime @default(now())
+
+  recipe    Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author    User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
+  @@index([authorId])
+  @@unique([recipeId, authorId])
+}
+
+model MealPlan {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  date     DateTime
+  mealType MealType
+  recipeId Int
+
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([recipeId])
+  @@unique([userId, date, mealType])
+}
