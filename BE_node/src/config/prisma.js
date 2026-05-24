@@ -13,8 +13,8 @@ export const prisma = new PrismaClient({
   adapter,
   log:
     process.env.NODE_ENV === "development"
-      ? ["query", "error", "warn"]
-      : ["error"],
+      ? ["query", "info", "warn", "error"]
+      : ["warn", "error"],
 })
 
 export const connectDB = async () => {
