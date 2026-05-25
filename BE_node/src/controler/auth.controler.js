@@ -6,18 +6,13 @@ import { generateToken } from "../utils/generateToken.js";
 const register = async (req, res, next) => {
     const { username, email, password } = req.body;
 
-    if (!username || !email || !password) {
-        return res.status(400).json({ message: "All fields are required" })
-    }
-    
-    
     //check if user existin
     const userExits = await prisma.user.findUnique({
-        where: { email: email }
+        where: { email }
     })
 
     if (userExits) {
-        return res.status(400).json({ message: "User already exists" })
+        return res.status(400).json({ message: "Email already exists" })
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -46,10 +41,6 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ message: "All fields are required" })
-    }
 
     //check if user existin
     const userExits = await prisma.user.findUnique({
