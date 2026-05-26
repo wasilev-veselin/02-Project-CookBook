@@ -22,8 +22,75 @@ const recipeInclude = {
     },
 };
 
+const getIngredientFilters = (ingredients) => {
+    if (!ingredients) {
+        return [];
+    }
+
+    return ingredients
+        .map((ingredient) => ({
+            ingredients: {
+                some: {
+                    name: {
+                        contains: ingredient,
+                        mode: "insensitive",
+                    },
+                },
+            },
+        }));
+};
+
 const catalogRecipe = async (req, res, next) => {
+    const { difficulty, cookingTime, ingredients, type, search } = req.validatedQuery;
+    const where = {};
+    const andFilters = getIngredientFilters(ingredients);
+
+    if (difficulty) {
+        where.difficulty = difficulty;
+    }
+
+    if (cookingTime) {
+        where.cookingTime = {
+            lte: cookingTime,
+        };
+    }
+
+    if (type) {
+        where.type = {
+            name: {
+                equals: type,
+                mode: "insensitive",
+            },
+        };
+    }
+
+    if (search) {
+        const searchValue = search.trim();
+
+        if (searchValue) {
+            where.OR = [
+                {
+                    title: {
+                        contains: searchValue,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    description: {
+                        contains: searchValue,
+                        mode: "insensitive",
+                    },
+                },
+            ];
+        }
+    }
+
+    if (andFilters.length > 0) {
+        where.AND = andFilters;
+    }
+
     const recipes = await prisma.recipe.findMany({
+        where,
         include: recipeInclude,
         orderBy: {
             createdAt: "desc",

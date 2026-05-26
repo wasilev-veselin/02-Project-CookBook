@@ -1,0 +1,25 @@
+export const validateCatalogQuery = (schema) => {
+  return (request, response, next) => {
+    const result = schema.safeParse(request.query)
+
+    if (!result.success) {
+      const isDevelopment = process.env.NODE_ENV === "development"
+
+      const responseBody = {
+        message: "Invalid query parameters",
+      }
+
+      if (isDevelopment) {
+        responseBody.errors = result.error.issues.map((issue) => ({
+          field: issue.path.join("."),
+          message: issue.message,
+        }))
+      }
+
+      return response.status(400).json(responseBody)
+    }
+
+    request.validatedQuery = result.data
+    next()
+  }
+}
