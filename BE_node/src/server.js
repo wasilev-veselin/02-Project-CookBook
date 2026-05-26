@@ -5,6 +5,7 @@ import { catalogRouter } from "./routes/catalog.route.js"
 import { healthRouter } from "./routes/health.route.js"
 import { errorHandler, notFoundHandler, requestLogger, requestTimeout } from "./middware/errorHandler.js"
 import { authRouter } from "./routes/auth.route.js"
+import { recipeRouter } from "./routes/recipe.route.js"
 
 const app = express()
 const port = process.env.PORT || 4000
@@ -16,9 +17,9 @@ await connectDB()
 
 // Routes
 app.use("/", healthRouter)
-app.use("/allRecipe", catalogRouter)
-
 app.use("/auth", authRouter)
+
+app.use("/allRecipe", recipeRouter)
 
 
 app.use(notFoundHandler)
