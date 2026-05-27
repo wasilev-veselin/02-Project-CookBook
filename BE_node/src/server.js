@@ -1,4 +1,5 @@
 import "dotenv/config"
+import cors from "cors"
 import express from "express"
 import { connectDB, disconnectDB } from "./config/prisma.js"
 import { healthRouter } from "./routes/health.route.js"
@@ -11,8 +12,26 @@ import { commentRouter } from "./routes/comment.route.js"
 
 const app = express()
 const port = process.env.PORT || 4000
+const allowedOrigins = process.env.CORS_ORIGIN?.split(",").map((origin) => origin.trim()) ?? [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]
 
 
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+        return
+      }
+
+      callback(new Error("Not allowed by CORS"))
+    },
+    credentials: true,
+    optionsSuccessStatus: 204,
+  })
+)
 app.use(requestLogger)
 app.use(requestTimeout())
 
