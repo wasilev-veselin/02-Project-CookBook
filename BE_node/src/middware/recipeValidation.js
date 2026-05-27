@@ -1,5 +1,12 @@
 import { z } from "zod"
 
+const positiveIdSchema = z
+  .string({ error: "Recipe id is required" })
+  .trim()
+  .regex(/^\d+$/, "Recipe id must be a positive number")
+  .transform(Number)
+  .refine((value) => value > 0, "Recipe id must be positive")
+
 const textFilterSchema = z
   .string()
   .trim()
@@ -66,5 +73,11 @@ export const catalogRecipeQuerySchema = z
     ingredients: ingredientsQuerySchema,
     type: optionalString(recipeTypeSchema),
     search: optionalString(textFilterSchema),
+  })
+  .strict()
+
+export const recipeIdParamsSchema = z
+  .object({
+    id: positiveIdSchema,
   })
   .strict()

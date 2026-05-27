@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto"
+import { Prisma } from "@prisma/client"
 
 // Adds a request id and logs when each request starts and finishes.
 export function requestLogger(request, response, next) {
@@ -81,6 +82,29 @@ export function errorHandler(error, request, response, next) {
   if (error instanceof SyntaxError && "body" in error) {
     error.statusCode = 400
     error.message = "Invalid JSON body"
+  }
+
+  if (error instanceof Prisma.PrismaClientValidationError) {
+    error.statusCode = 400
+    error.message = "Invalid data provided"
+  }
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === "P2002") {
+      const field = error.meta?.target?.[0] || "field"
+      error.statusCode = 400
+      error.message = `${field} already exists`
+    }
+
+    if (error.code === "P2003") {
+      error.statusCode = 400
+      error.message = "Invalid reference: related record does not exist"
+    }
+
+    if (error.code === "P2025") {
+      error.statusCode = 404
+      error.message = "Record not found"
+    }
   }
 
   const statusCode = error.statusCode || error.status || 500
