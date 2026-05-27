@@ -1,14 +1,21 @@
 import { useRecipes } from '../hooks/useRecipes'
+import type { RecipeCategoryType } from './CategorySidebar'
 
-export function MainContent() {
-  const { recipes, isLoading, error } = useRecipes()
+type MainContentProps = {
+  selectedType?: RecipeCategoryType
+}
+
+export function MainContent({ selectedType }: MainContentProps) {
+  const { recipes, isLoading, error } = useRecipes({ type: selectedType })
 
   return (
     <main className="min-w-0">
       <section>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-stone-950">Всички рецепти</h2>
+            <h2 className="text-xl font-semibold text-stone-950">
+              {selectedType ? `Рецепти: ${selectedType}` : 'Всички рецепти'}
+            </h2>
           </div>
         </div>
 

@@ -47,10 +47,44 @@ type CatalogRecipeResponse = {
   recipes: Recipe[]
 }
 
+export type CatalogRecipeFilters = {
+  difficulty?: RecipeDifficulty
+  cookingTime?: number
+  type?: string
+  search?: string
+  ingredients?: string[]
+}
+
 const API_BASE_URL = 'http://localhost:4000'
 
-export async function getCatalogRecipes(): Promise<Recipe[]> {
-  const response = await fetch(`${API_BASE_URL}/allRecipe/catalogRecipe`)
+function buildCatalogRecipeUrl(filters: CatalogRecipeFilters): string {
+  const url = new URL(`${API_BASE_URL}/allRecipe/catalogRecipe`)
+
+  if (filters.difficulty) {
+    url.searchParams.set('difficulty', filters.difficulty)
+  }
+
+  if (filters.cookingTime) {
+    url.searchParams.set('cookingTime', String(filters.cookingTime))
+  }
+
+  if (filters.type) {
+    url.searchParams.set('type', filters.type)
+  }
+
+  if (filters.search) {
+    url.searchParams.set('search', filters.search)
+  }
+
+  if (filters.ingredients?.length) {
+    url.searchParams.set('ingredients', filters.ingredients.join(','))
+  }
+
+  return url.toString()
+}
+
+export async function getCatalogRecipes(filters: CatalogRecipeFilters = {}): Promise<Recipe[]> {
+  const response = await fetch(buildCatalogRecipeUrl(filters))
 
   if (!response.ok) {
     throw new Error('Could not load recipes.')

@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import { getCatalogRecipes, type Recipe } from '../services/recipe.service'
+import {
+  getCatalogRecipes,
+  type CatalogRecipeFilters,
+  type Recipe,
+} from '../services/recipe.service'
 
 type UseRecipesResult = {
   recipes: Recipe[]
@@ -7,10 +11,11 @@ type UseRecipesResult = {
   error: string | null
 }
 
-export function useRecipes(): UseRecipesResult {
+export function useRecipes(filters: CatalogRecipeFilters = {}): UseRecipesResult {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { cookingTime, difficulty, ingredients, search, type } = filters
 
   useEffect(() => {
     let isActive = true
@@ -20,7 +25,13 @@ export function useRecipes(): UseRecipesResult {
         setIsLoading(true)
         setError(null)
 
-        const catalogRecipes = await getCatalogRecipes()
+        const catalogRecipes = await getCatalogRecipes({
+          cookingTime,
+          difficulty,
+          ingredients,
+          search,
+          type,
+        })
 
         if (isActive) {
           setRecipes(catalogRecipes)
@@ -41,7 +52,7 @@ export function useRecipes(): UseRecipesResult {
     return () => {
       isActive = false
     }
-  }, [])
+  }, [cookingTime, difficulty, ingredients, search, type])
 
   return { recipes, isLoading, error }
 }
