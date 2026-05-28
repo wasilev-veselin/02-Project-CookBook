@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { API_BASE_URL } from '../../../config/env'
 
 export type RecipeDifficulty = 'EASY' | 'MEDIUM' | 'HARD'
 
@@ -49,6 +50,10 @@ type CatalogRecipeResponse = {
   recipes: Recipe[]
 }
 
+type RecipeDetailsResponse = {
+  recipe: Recipe
+}
+
 export type CatalogRecipeFilters = {
   difficulty?: RecipeDifficulty
   cookingTime?: number
@@ -57,9 +62,7 @@ export type CatalogRecipeFilters = {
   ingredients?: string[]
 }
 
-const API_BASE_URL = 'http://localhost:4000'
-
-const apiClient = axios.create({
+const catalogApiClient = axios.create({
   baseURL: API_BASE_URL,
 })
 
@@ -90,9 +93,15 @@ function buildCatalogRecipeParams(filters: CatalogRecipeFilters): Record<string,
 }
 
 export async function getRecipesService(filters: CatalogRecipeFilters = {}): Promise<Recipe[]> {
-  const { data } = await apiClient.get<CatalogRecipeResponse>('/allRecipe/catalogRecipe', {
+  const { data } = await catalogApiClient.get<CatalogRecipeResponse>('/allRecipe/catalogRecipe', {
     params: buildCatalogRecipeParams(filters),
   })
 
   return data.recipes
+}
+
+export async function getRecipeByIdService(recipeId: number): Promise<Recipe> {
+  const { data } = await catalogApiClient.get<RecipeDetailsResponse>(`/allRecipe/${recipeId}`)
+
+  return data.recipe
 }

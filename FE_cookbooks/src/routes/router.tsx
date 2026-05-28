@@ -1,4 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { LoginPage } from '../features/auth/pages/LoginPage'
+import { RegisterPage } from '../features/auth/pages/RegisterPage'
 import { CatalogLayout } from '../features/catalog/layouts/CatalogLayout'
 import { CatalogPage } from '../features/catalog/pages/CatalogPage'
 import { RecipeDetailsPage } from '../features/catalog/pages/RecipeDetailsPage'
@@ -22,11 +24,11 @@ export const router = createBrowserRouter([
             index: true,
             element: <CatalogPage />,
           },
-          {
-            path: ':recipeId',
-            element: <RecipeDetailsPage />,
-          },
         ],
+      },
+      {
+        path: 'catalog/:recipeId',
+        element: <RecipeDetailsPage />,
       },
       {
         path: 'my-favorites',
@@ -35,6 +37,14 @@ export const router = createBrowserRouter([
       {
         path: 'meal-plan',
         element: <MealPlanPage />,
+      },
+      {
+        path: 'login',
+        element: <LoginPage />,
+      },
+      {
+        path: 'register',
+        element: <RegisterPage />,
       },
       {
         path: '*',

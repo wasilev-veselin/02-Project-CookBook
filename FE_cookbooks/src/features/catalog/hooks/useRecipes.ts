@@ -3,7 +3,7 @@ import {
   getRecipesService,
   type CatalogRecipeFilters,
   type Recipe,
-} from '../service/recipe.service'
+} from '../services/recipe.service'
 
 type UseRecipesResult = {
   recipes: Recipe[]
