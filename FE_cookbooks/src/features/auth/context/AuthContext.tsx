@@ -31,6 +31,7 @@ function getStoredUser(): AuthUser | null {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(() => getStoredUser())
+  const isAuthenticated = Boolean(user)
 
   async function login(payload: LoginPayload): Promise<string> {
     const response = await loginService(payload)
@@ -56,6 +57,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
   )
 }

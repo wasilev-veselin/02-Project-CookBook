@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { AuthenticatedOnly } from '../../auth/components/AuthenticatedOnly'
+import { useAddFavoriteRecipe } from '../hooks/useAddFavoriteRecipe'
 import type { Recipe } from '../services/recipe.service'
 
 type RecipeCardProps = {
@@ -6,6 +8,8 @@ type RecipeCardProps = {
 }
 
 export function RecipeCard({ recipe }: RecipeCardProps) {
+  const { addFavoriteRecipe, isLoading, error } = useAddFavoriteRecipe()
+
   return (
     <article className="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       {recipe.imageUrl && (
@@ -36,10 +40,20 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           >
             Детайли
           </Link>
-          <button className="rounded-md bg-emerald-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-800">
-            Favorite
-          </button>
+          <AuthenticatedOnly>
+            <button
+              type="button"
+              onClick={() => {
+                void addFavoriteRecipe(recipe.id)
+              }}
+              disabled={isLoading}
+              className="rounded-md bg-emerald-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoading ? 'Adding...' : 'Favorite'}
+            </button>
+          </AuthenticatedOnly>
         </div>
+        {error && <p className="mt-3 text-sm font-medium text-red-700">{error}</p>}
       </div>
     </article>
   )

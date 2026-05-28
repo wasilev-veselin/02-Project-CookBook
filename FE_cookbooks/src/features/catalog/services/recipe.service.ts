@@ -64,6 +64,7 @@ export type CatalogRecipeFilters = {
 
 const catalogApiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
 })
 
 function buildCatalogRecipeParams(filters: CatalogRecipeFilters): Record<string, string | number> {
@@ -104,4 +105,8 @@ export async function getRecipeByIdService(recipeId: number): Promise<Recipe> {
   const { data } = await catalogApiClient.get<RecipeDetailsResponse>(`/allRecipe/${recipeId}`)
 
   return data.recipe
+}
+
+export async function addFavoriteRecipeService(recipeId: number): Promise<void> {
+  await catalogApiClient.post(`/favorite/${recipeId}`)
 }

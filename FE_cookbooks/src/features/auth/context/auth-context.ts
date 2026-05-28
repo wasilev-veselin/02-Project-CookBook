@@ -3,6 +3,7 @@ import type { AuthUser, LoginPayload, RegisterPayload } from '../services/auth.s
 
 export type AuthContextValue = {
   user: AuthUser | null
+  isAuthenticated: boolean
   login: (payload: LoginPayload) => Promise<string>
   register: (payload: RegisterPayload) => Promise<string>
   logout: () => void
