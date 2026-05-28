@@ -1,4 +1,4 @@
-import { useRecipesHook } from '../hooks/useRecipes'
+import { useRecipesHook } from '../features/catalog/hooks/useRecipes'
 import type { RecipeCategoryType } from '../features/catalog/components/CatalogLeftSidebar'
 
 type MainContentProps = {
