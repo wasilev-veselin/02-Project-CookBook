@@ -2,6 +2,7 @@ import { type ReactNode, useState } from 'react'
 import { AuthContext } from './auth-context'
 import {
   loginService,
+  logoutService,
   registerService,
   type AuthUser,
   type LoginPayload,
@@ -51,7 +52,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return response.status
   }
 
-  function logout() {
+  async function logout() {
+    await logoutService()
     setUser(null)
     window.localStorage.removeItem(AUTH_USER_STORAGE_KEY)
   }

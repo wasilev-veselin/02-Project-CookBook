@@ -44,3 +44,7 @@ export async function registerService(payload: RegisterPayload): Promise<Registe
 
   return data
 }
+
+export async function logoutService(): Promise<void> {
+  await authApiClient.post('/auth/logout')
+}

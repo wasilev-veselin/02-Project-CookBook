@@ -6,7 +6,7 @@ export type AuthContextValue = {
   isAuthenticated: boolean
   login: (payload: LoginPayload) => Promise<string>
   register: (payload: RegisterPayload) => Promise<string>
-  logout: () => void
+  logout: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
