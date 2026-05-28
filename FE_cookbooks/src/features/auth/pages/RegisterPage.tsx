@@ -1,8 +1,9 @@
 import { type FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { registerService } from '../services/auth.service'
+import { useAuth } from '../hooks/useAuth'
 
 export function RegisterPage() {
+  const { register } = useAuth()
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,9 +19,9 @@ export function RegisterPage() {
       setError(null)
       setSuccessMessage(null)
 
-      const response = await registerService({ username, email, password })
+      const message = await register({ username, email, password })
 
-      setSuccessMessage(response.status ?? 'Registration successful.')
+      setSuccessMessage(message)
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : 'Registration failed.')
     } finally {

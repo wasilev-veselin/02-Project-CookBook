@@ -1,9 +1,10 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { loginService } from '../services/auth.service'
+import { useAuth } from '../hooks/useAuth'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -18,9 +19,9 @@ export function LoginPage() {
       setError(null)
       setSuccessMessage(null)
 
-      const response = await loginService({ email, password })
+      const message = await login({ email, password })
 
-      setSuccessMessage(response.message)
+      setSuccessMessage(message)
       navigate('/catalog')
     } catch {
       setError('Невалидни данни')

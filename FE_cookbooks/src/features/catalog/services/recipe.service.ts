@@ -32,7 +32,7 @@ export type Recipe = {
     quantity: string
     unit: string
   }>
-  comments: Array<{
+  comments?: Array<{
     id: number
     recipeId: number
     authorId: number

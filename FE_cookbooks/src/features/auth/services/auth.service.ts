@@ -1,12 +1,20 @@
 import axios from 'axios'
 import { API_BASE_URL } from '../../../config/env'
 
+export type AuthUser = {
+  id?: number
+  username: string
+  email: string
+}
+
 export type LoginResponse = {
   message: string
+  user: AuthUser
 }
 
 export type RegisterResponse = {
   status: string
+  user: AuthUser
 }
 
 export type LoginPayload = {
@@ -22,6 +30,7 @@ export type RegisterPayload = {
 
 const authApiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
 })
 
 export async function loginService(payload: LoginPayload): Promise<LoginResponse> {
