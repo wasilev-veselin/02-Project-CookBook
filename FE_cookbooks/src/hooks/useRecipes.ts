@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  getCatalogRecipes,
+  getRecipesService,
   type CatalogRecipeFilters,
   type Recipe,
 } from '../services/recipe.service'
@@ -11,7 +11,7 @@ type UseRecipesResult = {
   error: string | null
 }
 
-export function useRecipes(filters: CatalogRecipeFilters = {}): UseRecipesResult {
+export function useRecipesHook(filters: CatalogRecipeFilters = {}): UseRecipesResult {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +25,7 @@ export function useRecipes(filters: CatalogRecipeFilters = {}): UseRecipesResult
         setIsLoading(true)
         setError(null)
 
-        const catalogRecipes = await getCatalogRecipes({
+        const catalogRecipes = await getRecipesService({
           cookingTime,
           difficulty,
           ingredients,

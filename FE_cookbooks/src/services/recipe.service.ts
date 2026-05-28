@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 export type RecipeDifficulty = 'EASY' | 'MEDIUM' | 'HARD'
 
 export type Recipe = {
@@ -57,40 +59,40 @@ export type CatalogRecipeFilters = {
 
 const API_BASE_URL = 'http://localhost:4000'
 
-function buildCatalogRecipeUrl(filters: CatalogRecipeFilters): string {
-  const url = new URL(`${API_BASE_URL}/allRecipe/catalogRecipe`)
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+})
+
+function buildCatalogRecipeParams(filters: CatalogRecipeFilters): Record<string, string | number> {
+  const params: Record<string, string | number> = {}
 
   if (filters.difficulty) {
-    url.searchParams.set('difficulty', filters.difficulty)
+    params.difficulty = filters.difficulty
   }
 
   if (filters.cookingTime) {
-    url.searchParams.set('cookingTime', String(filters.cookingTime))
+    params.cookingTime = filters.cookingTime
   }
 
   if (filters.type) {
-    url.searchParams.set('type', filters.type)
+    params.type = filters.type
   }
 
   if (filters.search) {
-    url.searchParams.set('search', filters.search)
+    params.search = filters.search
   }
 
   if (filters.ingredients?.length) {
-    url.searchParams.set('ingredients', filters.ingredients.join(','))
+    params.ingredients = filters.ingredients.join(',')
   }
 
-  return url.toString()
+  return params
 }
 
-export async function getCatalogRecipes(filters: CatalogRecipeFilters = {}): Promise<Recipe[]> {
-  const response = await fetch(buildCatalogRecipeUrl(filters))
-
-  if (!response.ok) {
-    throw new Error('Could not load recipes.')
-  }
-
-  const data = (await response.json()) as CatalogRecipeResponse
+export async function getRecipesService(filters: CatalogRecipeFilters = {}): Promise<Recipe[]> {
+  const { data } = await apiClient.get<CatalogRecipeResponse>('/allRecipe/catalogRecipe', {
+    params: buildCatalogRecipeParams(filters),
+  })
 
   return data.recipes
 }

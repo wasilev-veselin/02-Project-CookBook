@@ -1,12 +1,12 @@
-import { useRecipes } from '../hooks/useRecipes'
-import type { RecipeCategoryType } from './CategorySidebar'
+import { useRecipesHook } from '../hooks/useRecipes'
+import type { RecipeCategoryType } from '../features/catalog/components/CatalogLeftSidebar'
 
 type MainContentProps = {
   selectedType?: RecipeCategoryType
 }
 
 export function MainContent({ selectedType }: MainContentProps) {
-  const { recipes, isLoading, error } = useRecipes({ type: selectedType })
+  const { recipes, isLoading, error } = useRecipesHook({ type: selectedType })
 
   return (
     <main className="min-w-0">

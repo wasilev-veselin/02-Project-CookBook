@@ -16,14 +16,14 @@ const categories: Category[] = [
   { label: 'Супи', type: 'SOUP' },
 ]
 
-type CategorySidebarProps = {
+type CatalogLeftSidebarProps = {
   selectedType?: RecipeCategoryType
   onCategorySelect: (type?: RecipeCategoryType) => void
 }
 
-export function CategorySidebar({ selectedType, onCategorySelect }: CategorySidebarProps) {
+export function CatalogLeftSidebar({ selectedType, onCategorySelect }: CatalogLeftSidebarProps) {
   return (
-    <aside className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm lg:sticky lg:top-28 lg:self-start">
+    <aside className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm lg:top-28 lg:self-start">
       <h2 className="text-base font-semibold text-stone-950">Категории</h2>
       <nav aria-label="Категории рецепти" className="mt-4 space-y-1">
         {categories.map((category) => {
