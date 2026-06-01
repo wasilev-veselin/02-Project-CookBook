@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { getApiErrorMessage } from '../../../shared/api/apiErrors'
 import { addFavoriteRecipeService } from '../services/recipe.service'
 
 type UseAddFavoriteRecipeResult = {
@@ -17,8 +18,8 @@ export function useAddFavoriteRecipe(): UseAddFavoriteRecipeResult {
       setError(null)
 
       await addFavoriteRecipeService(recipeId)
-    } catch {
-      setError('Неуспешно добавяне в любими.')
+    } catch (caughtError) {
+      setError(getApiErrorMessage(caughtError, 'Неуспешно добавяне в любими.'))
     } finally {
       setIsLoading(false)
     }

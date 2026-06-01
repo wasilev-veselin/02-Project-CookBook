@@ -3,10 +3,10 @@ import {
   addFavoriteRecipe,
   getFavoriteRecipes,
   removeFavoriteRecipe,
-} from "../controler/favorite.controler.js"
-import { protectRoute } from "../middware/auth.middleware.js"
-import { favoriteRecipeParamsSchema } from "../middware/favoriteValidation.js"
-import { validateParams } from "../middware/validateParams.js"
+} from "../controllers/favorite.controller.js"
+import { protectRoute } from "../middleware/auth.middleware.js"
+import { favoriteRecipeParamsSchema } from "../validations/favoriteValidation.js"
+import { validateParams } from "../middleware/validateParams.js"
 
 export const favoriteRouter = Router()
 

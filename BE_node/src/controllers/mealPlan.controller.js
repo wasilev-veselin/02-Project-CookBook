@@ -1,4 +1,5 @@
 import { prisma } from "../config/prisma.js";
+import { sendError, sendSuccess } from "../utils/apiResponse.js";
 
 const getDayRange = (date) => {
   const startDate = new Date(`${date}T00:00:00.000Z`);
@@ -34,7 +35,7 @@ const getMealPlanByDate = async (req, res, next) => {
     },
   });
 
-  return res.status(200).json({
+  return sendSuccess(res, 200, {
     date,
     mealPlans,
   });
@@ -53,7 +54,7 @@ const updateMealPlan = async (req, res, next) => {
   });
 
   if (!mealPlan || mealPlan.userId !== req.user.id) {
-    return res.status(404).json({ message: "Meal plan not found" });
+    return sendError(res, 404, { message: "Meal plan not found" });
   }
 
   if (recipeId) {
@@ -63,7 +64,7 @@ const updateMealPlan = async (req, res, next) => {
     });
 
     if (!recipe) {
-      return res.status(404).json({ message: "Recipe not found" });
+      return sendError(res, 404, { message: "Recipe not found" });
     }
   }
 
@@ -84,7 +85,7 @@ const updateMealPlan = async (req, res, next) => {
     },
   });
 
-  return res.status(200).json({
+  return sendSuccess(res, 200, {
     message: "Meal plan updated",
     mealPlan: updatedMealPlan,
   });
@@ -102,14 +103,14 @@ const deleteMealPlan = async (req, res, next) => {
   });
 
   if (!mealPlan || mealPlan.userId !== req.user.id) {
-    return res.status(404).json({ message: "Meal plan not found" });
+    return sendError(res, 404, { message: "Meal plan not found" });
   }
 
   await prisma.mealPlan.delete({
     where: { id },
   });
 
-  return res.status(200).json({ message: "Meal plan deleted" });
+  return sendSuccess(res, 200, { message: "Meal plan deleted" });
 };
 
 export { deleteMealPlan, getMealPlanByDate, updateMealPlan };

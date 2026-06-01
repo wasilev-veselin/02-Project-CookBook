@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { prisma } from "../config/prisma.js";
+import { sendError } from "../utils/apiResponse.js";
 
 const getTokenFromCookies = (cookieHeader) => {
   if (!cookieHeader) {
@@ -27,7 +28,7 @@ export const protectRoute = async (request, response, next) => {
     const token = getTokenFromRequest(request);
 
     if (!token) {
-      return response.status(401).json({ message: "Not authorized" });
+      return sendError(response, 401, { message: "Not authorized" });
     }
 
     if (!process.env.JWT_SECRET) {
@@ -46,14 +47,14 @@ export const protectRoute = async (request, response, next) => {
     });
 
     if (!user) {
-      return response.status(401).json({ message: "Not authorized" });
+      return sendError(response, 401, { message: "Not authorized" });
     }
 
     request.user = user;
     next();
   } catch (error) {
     if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
-      return response.status(401).json({ message: "Not authorized" });
+      return sendError(response, 401, { message: "Not authorized" });
     }
 
     next(error);

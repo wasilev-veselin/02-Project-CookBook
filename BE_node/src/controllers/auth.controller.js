@@ -2,6 +2,7 @@ import { prisma } from "../config/prisma.js";
 import bcrypt from "bcryptjs";
 
 import { generateToken } from "../utils/generateToken.js";
+import { sendError, sendSuccess } from "../utils/apiResponse.js";
 
 const register = async (req, res, next) => {
     const { username, email, password } = req.body;
@@ -12,7 +13,7 @@ const register = async (req, res, next) => {
     })
 
     if (userExits) {
-        return res.status(400).json({ message: "Email already exists" })
+        return sendError(res, 400, { message: "Email already exists" })
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -28,14 +29,15 @@ const register = async (req, res, next) => {
         }
     });
  
-    return res.status(201).json({
-        status: "User registered successfully",
+    generateToken(user.id, res)
+
+    return sendSuccess(res, 201, {
+        message: "User registered successfully",
         user: {
             id: user.id,
             username: user.username,
             email: user.email
-        }, token: generateToken(user.id, res)
-
+        }
     })
 }
 
@@ -48,25 +50,25 @@ const login = async (req, res, next) => {
     })
 
     if (!userExits) {
-        return res.status(401).json({ message: "Invalid credentials" })
+        return sendError(res, 401, { message: "Invalid credentials" })
     }
 
     const isPasswordValid = await bcrypt.compare(password, userExits.passwordHash);
 
     if (!isPasswordValid) {
-        return res.status(401).json({ message: "Invalid credentials" })
+        return sendError(res, 401, { message: "Invalid credentials" })
     }
 
 
-   const token = generateToken(userExits.id, res);
+   generateToken(userExits.id, res);
    
-    return res.status(200).json({
+    return sendSuccess(res, 200, {
         message: "Login successful",
         user: {
+            id: userExits.id,
             username: userExits.username,
             email: userExits.email
-        },
-        token
+        }
     })
 }
 
@@ -75,7 +77,7 @@ const logout = async (req, res, next) => {
         httpOnly: true,
         expires: new Date(0),
     });
-    return res.status(200).json({ message: "Logout successful" })
+    return sendSuccess(res, 200, { message: "Logout successful" })
 }
 
 export { register, login, logout };

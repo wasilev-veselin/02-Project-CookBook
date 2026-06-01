@@ -1,10 +1,15 @@
 import { Link } from 'react-router-dom'
+import type { Recipe } from '../../../shared/recipes/recipe.schema'
 import { AuthenticatedOnly } from '../../auth/components/AuthenticatedOnly'
 import { useAddFavoriteRecipe } from '../hooks/useAddFavoriteRecipe'
-import type { Recipe } from '../services/recipe.service'
+
+type RecipeCardRecipe = Pick<
+  Recipe,
+  'id' | 'type' | 'cookingTime' | 'title' | 'description' | 'difficulty' | 'servings' | 'author' | 'imageUrl'
+>
 
 type RecipeCardProps = {
-  recipe: Recipe
+  recipe: RecipeCardRecipe
 }
 
 export function RecipeCard({ recipe }: RecipeCardProps) {

@@ -1,12 +1,14 @@
-export const validateParams = (schema) => {
+import { sendError } from "../utils/apiResponse.js"
+
+export const validateBody = (schema) => {
   return (request, response, next) => {
-    const result = schema.safeParse(request.params)
+    const result = schema.safeParse(request.body)
 
     if (!result.success) {
       const isDevelopment = process.env.NODE_ENV === "development"
 
       const responseBody = {
-        message: "Invalid route parameters",
+        message: "Invalid request body",
       }
 
       if (isDevelopment) {
@@ -16,10 +18,10 @@ export const validateParams = (schema) => {
         }))
       }
 
-      return response.status(400).json(responseBody)
+      return sendError(response, 400, responseBody)
     }
 
-    request.validatedParams = result.data
+    request.body = result.data
     next()
   }
 }

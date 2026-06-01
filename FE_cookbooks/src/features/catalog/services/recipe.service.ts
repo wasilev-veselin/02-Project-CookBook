@@ -1,58 +1,15 @@
-import axios from 'axios'
-import { API_BASE_URL } from '../../../config/env'
+import { z } from 'zod'
+import { apiClient } from '../../../shared/api/apiClient'
+import { requestApiData } from '../../../shared/api/parseApiData'
+import { recipeSchema, type Recipe, type RecipeDifficulty } from '../../../shared/recipes/recipe.schema'
 
-export type RecipeDifficulty = 'EASY' | 'MEDIUM' | 'HARD'
+const AllRecipeResponseSchema = z.object({
+  recipes: z.array(recipeSchema),
+})
 
-export type Recipe = {
-  id: number
-  authorId: number
-  typeId: number
-  title: string
-  description: string
-  instructions: string
-  cookingTime: number
-  difficulty: RecipeDifficulty
-  servings: number
-  imageUrl: string
-  createdAt: string
-  updatedAt: string
-  author: {
-    id: number
-    username: string
-    email?: string
-  }
-  type: {
-    id: number
-    name: string
-  }
-  ingredients: Array<{
-    id: number
-    recipeId: number
-    name: string
-    quantity: string
-    unit: string
-  }>
-  comments?: Array<{
-    id: number
-    recipeId: number
-    authorId: number
-    content: string
-    rating: number
-    createdAt: string
-    author: {
-      id: number
-      username: string
-    }
-  }>
-}
-
-type CatalogRecipeResponse = {
-  recipes: Recipe[]
-}
-
-type RecipeDetailsResponse = {
-  recipe: Recipe
-}
+const recipeDetailsResponseSchema = z.object({
+  recipe: recipeSchema,
+})
 
 export type CatalogRecipeFilters = {
   difficulty?: RecipeDifficulty
@@ -62,10 +19,9 @@ export type CatalogRecipeFilters = {
   ingredients?: string[]
 }
 
-const catalogApiClient = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-})
+type ApiRequestOptions = {
+  signal?: AbortSignal
+}
 
 function buildCatalogRecipeParams(filters: CatalogRecipeFilters): Record<string, string | number> {
   const params: Record<string, string | number> = {}
@@ -93,20 +49,29 @@ function buildCatalogRecipeParams(filters: CatalogRecipeFilters): Record<string,
   return params
 }
 
-export async function getRecipesService(filters: CatalogRecipeFilters = {}): Promise<Recipe[]> {
-  const { data } = await catalogApiClient.get<CatalogRecipeResponse>('/allRecipe/catalogRecipe', {
+export async function getRecipesService(
+  filters: CatalogRecipeFilters = {},
+  options: ApiRequestOptions = {},
+): Promise<Recipe[]> {
+  const catalogRecipeResponse = await requestApiData('/recipes', AllRecipeResponseSchema, {
     params: buildCatalogRecipeParams(filters),
+    signal: options.signal,
   })
 
-  return data.recipes
+  return catalogRecipeResponse.recipes
 }
 
-export async function getRecipeByIdService(recipeId: number): Promise<Recipe> {
-  const { data } = await catalogApiClient.get<RecipeDetailsResponse>(`/allRecipe/${recipeId}`)
+export async function getRecipeByIdService(
+  recipeId: number,
+  options: ApiRequestOptions = {},
+): Promise<Recipe> {
+  const recipeDetailsResponse = await requestApiData(`/recipes/${recipeId}`, recipeDetailsResponseSchema, {
+    signal: options.signal,
+  })
 
-  return data.recipe
+  return recipeDetailsResponse.recipe
 }
 
 export async function addFavoriteRecipeService(recipeId: number): Promise<void> {
-  await catalogApiClient.post(`/favorite/${recipeId}`)
+  await apiClient.post(`/favorites/${recipeId}`)
 }

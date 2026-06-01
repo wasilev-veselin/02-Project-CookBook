@@ -1,6 +1,13 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { z } from 'zod'
+import { getApiErrorMessage } from '../../../shared/api/apiErrors'
 import { useAuth } from '../hooks/useAuth'
+
+const loginFormSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address.'),
+  password: z.string().min(1, 'Enter your password.'),
+})
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -19,12 +26,19 @@ export function LoginPage() {
       setError(null)
       setSuccessMessage(null)
 
-      const message = await login({ email, password })
+      const formResult = loginFormSchema.safeParse({ email, password })
+
+      if (!formResult.success) {
+        setError(formResult.error.issues[0]?.message ?? 'Invalid login data.')
+        return
+      }
+
+      const message = await login(formResult.data)
 
       setSuccessMessage(message)
       navigate('/catalog')
-    } catch {
-      setError('Невалидни данни')
+    } catch (caughtError) {
+      setError(getApiErrorMessage(caughtError, 'Невалидни данни'))
     } finally {
       setIsSubmitting(false)
     }

@@ -1,4 +1,5 @@
 import { prisma } from "../config/prisma.js";
+import { sendError, sendSuccess } from "../utils/apiResponse.js";
 
 const recipeInclude = {
     author: {
@@ -99,7 +100,7 @@ const catalogRecipe = async (req, res, next) => {
 
     res.set("Cache-Control", "public, max-age=0, must-revalidate");
 
-    return res.status(200).json({ recipes });
+    return sendSuccess(res, 200, { recipes });
 };
 
 const getRecipeById = async (req, res, next) => {
@@ -111,12 +112,12 @@ const getRecipeById = async (req, res, next) => {
     });
 
     if (!recipe) {
-        return res.status(404).json({ message: "Recipe not found" });
+        return sendError(res, 404, { message: "Recipe not found" });
     }
 
     res.set("Cache-Control", "public, max-age=0, must-revalidate");
 
-    return res.status(200).json({ recipe });
+    return sendSuccess(res, 200, { recipe });
 };
 
 export { catalogRecipe, getRecipeById };

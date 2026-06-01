@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { Prisma } from "@prisma/client"
+import { sendError } from "../utils/apiResponse.js"
 
 // Adds a request id and logs when each request starts and finishes.
 export function requestLogger(request, response, next) {
@@ -54,8 +55,8 @@ export function requestTimeout(timeoutMs = 15000) {
           timeoutMs,
         })
 
-        response.status(503).json({
-          error: "Request timeout",
+        sendError(response, 503, {
+          message: "Request timeout",
           requestId: request.requestId,
         })
       }
@@ -121,8 +122,8 @@ export function errorHandler(error, request, response, next) {
   })
 
   // In production, hide internal 500 details from the client.
-  response.status(statusCode).json({
-    error: statusCode === 500 && !isDevelopment ? "Internal server error" : error.message,
+  sendError(response, statusCode, {
+    message: statusCode === 500 && !isDevelopment ? "Internal server error" : error.message,
     requestId: request.requestId,
     ...(isDevelopment && {
       debug: {

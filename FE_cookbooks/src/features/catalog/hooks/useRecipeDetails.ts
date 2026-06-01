@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { getRecipeByIdService, type Recipe } from '../services/recipe.service'
+import { getApiErrorMessage } from '../../../shared/api/apiErrors'
+import type { Recipe } from '../../../shared/recipes/recipe.schema'
+import { getRecipeByIdService } from '../services/recipe.service'
 
 type UseRecipeDetailsResult = {
   recipe: Recipe | null
@@ -14,6 +16,7 @@ export function useRecipeDetails(recipeId: number | null): UseRecipeDetailsResul
 
   useEffect(() => {
     let isActive = true
+    const abortController = new AbortController()
 
     async function loadRecipe() {
       if (!recipeId) {
@@ -27,14 +30,16 @@ export function useRecipeDetails(recipeId: number | null): UseRecipeDetailsResul
         setIsLoading(true)
         setError(null)
 
-        const recipeDetails = await getRecipeByIdService(recipeId)
+        const recipeDetails = await getRecipeByIdService(recipeId, {
+          signal: abortController.signal,
+        })
 
         if (isActive) {
           setRecipe(recipeDetails)
         }
       } catch (caughtError) {
         if (isActive) {
-          setError(caughtError instanceof Error ? caughtError.message : 'Could not load recipe.')
+          setError(getApiErrorMessage(caughtError, 'Could not load recipe.'))
         }
       } finally {
         if (isActive) {
@@ -47,6 +52,7 @@ export function useRecipeDetails(recipeId: number | null): UseRecipeDetailsResul
 
     return () => {
       isActive = false
+      abortController.abort()
     }
   }, [recipeId])
 

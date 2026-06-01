@@ -3,7 +3,7 @@ import cors from "cors"
 import express from "express"
 import { connectDB, disconnectDB } from "./config/prisma.js"
 import { healthRouter } from "./routes/health.route.js"
-import { errorHandler, notFoundHandler, requestLogger, requestTimeout } from "./middware/errorHandler.js"
+import { errorHandler, notFoundHandler, requestLogger, requestTimeout } from "./middleware/errorHandler.js"
 import { authRouter } from "./routes/auth.route.js"
 import { recipeRouter } from "./routes/recipe.route.js"
 import { mealPlanRouter } from "./routes/mealPlan.route.js"
@@ -43,10 +43,10 @@ await connectDB()
 app.use("/", healthRouter)
 app.use("/auth", authRouter)
 
-app.use("/allRecipe", recipeRouter)
-app.use("/mealPlan", mealPlanRouter)
-app.use("/favorite", favoriteRouter)
-app.use("/comment", commentRouter)
+app.use("/recipes", recipeRouter)
+app.use("/favorites", favoriteRouter)
+app.use("/meal-plans", mealPlanRouter)
+app.use("/comments", commentRouter)
 
 app.use(notFoundHandler)
 app.use(errorHandler)

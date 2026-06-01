@@ -1,6 +1,14 @@
 import { type FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { z } from 'zod'
+import { getApiErrorMessage } from '../../../shared/api/apiErrors'
 import { useAuth } from '../hooks/useAuth'
+
+const registerFormSchema = z.object({
+  username: z.string().trim().min(3, 'Username must be at least 3 characters.'),
+  email: z.string().trim().email('Enter a valid email address.'),
+  password: z.string().min(8, 'Password must be at least 8 characters.'),
+})
 
 export function RegisterPage() {
   const { register } = useAuth()
@@ -19,11 +27,18 @@ export function RegisterPage() {
       setError(null)
       setSuccessMessage(null)
 
-      const message = await register({ username, email, password })
+      const formResult = registerFormSchema.safeParse({ username, email, password })
+
+      if (!formResult.success) {
+        setError(formResult.error.issues[0]?.message ?? 'Invalid registration data.')
+        return
+      }
+
+      const message = await register(formResult.data)
 
       setSuccessMessage(message)
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Registration failed.')
+      setError(getApiErrorMessage(caughtError, 'Registration failed.'))
     } finally {
       setIsSubmitting(false)
     }

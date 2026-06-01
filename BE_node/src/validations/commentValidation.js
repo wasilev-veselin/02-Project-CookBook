@@ -1,21 +1,15 @@
 import { z } from "zod"
-
-const positiveIdSchema = z
-  .string({ error: "Recipe id is required" })
-  .trim()
-  .regex(/^\d+$/, "Recipe id must be a positive number")
-  .transform(Number)
-  .refine((value) => value > 0, "Recipe id must be positive")
+import { positiveIdParamSchema } from "./commonSchemas.js"
 
 export const commentRecipeParamsSchema = z
   .object({
-    recipeId: positiveIdSchema,
+    recipeId: positiveIdParamSchema("Recipe id"),
   })
   .strict()
 
 export const commentIdParamsSchema = z
   .object({
-    id: positiveIdSchema,
+    id: positiveIdParamSchema("Comment id"),
   })
   .strict()
 

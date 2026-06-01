@@ -1,12 +1,14 @@
-export const validateBody = (schema) => {
+import { sendError } from "../utils/apiResponse.js"
+
+export const validateQuery = (schema) => {
   return (request, response, next) => {
-    const result = schema.safeParse(request.body)
+    const result = schema.safeParse(request.query)
 
     if (!result.success) {
       const isDevelopment = process.env.NODE_ENV === "development"
 
       const responseBody = {
-        message: "Invalid request body",
+        message: "Invalid query parameters",
       }
 
       if (isDevelopment) {
@@ -16,10 +18,10 @@ export const validateBody = (schema) => {
         }))
       }
 
-      return response.status(400).json(responseBody)
+      return sendError(response, 400, responseBody)
     }
 
-    request.body = result.data
+    request.validatedQuery = result.data
     next()
   }
 }

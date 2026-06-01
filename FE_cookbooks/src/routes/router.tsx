@@ -7,10 +7,12 @@ import { RecipeDetailsPage } from '../features/catalog/pages/RecipeDetailsPage'
 import { MealPlanPage } from '../features/meal-plan/pages/MealPlanPage'
 import { MyFavoritesPage } from '../features/my-favorites/pages/MyFavoritesPage'
 import { AppLayout } from '../layouts/AppLayout'
+import { RouteErrorPage } from './RouteErrorPage'
 
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
         index: true,

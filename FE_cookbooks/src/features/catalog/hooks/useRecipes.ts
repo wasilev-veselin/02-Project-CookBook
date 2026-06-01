@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
-import {
-  getRecipesService,
-  type CatalogRecipeFilters,
-  type Recipe,
-} from '../services/recipe.service'
+import { getApiErrorMessage } from '../../../shared/api/apiErrors'
+import type { Recipe } from '../../../shared/recipes/recipe.schema'
+import { getRecipesService, type CatalogRecipeFilters } from '../services/recipe.service'
 
 type UseRecipesResult = {
   recipes: Recipe[]
@@ -19,6 +17,7 @@ export function useRecipesHook(filters: CatalogRecipeFilters = {}): UseRecipesRe
 
   useEffect(() => {
     let isActive = true
+    const abortController = new AbortController()
 
     async function loadRecipes() {
       try {
@@ -31,6 +30,8 @@ export function useRecipesHook(filters: CatalogRecipeFilters = {}): UseRecipesRe
           ingredients,
           search,
           type,
+        }, {
+          signal: abortController.signal,
         })
 
         if (isActive) {
@@ -38,7 +39,8 @@ export function useRecipesHook(filters: CatalogRecipeFilters = {}): UseRecipesRe
         }
       } catch (caughtError) {
         if (isActive) {
-          setError(caughtError instanceof Error ? caughtError.message : 'Could not load recipes.')
+          setRecipes([])
+          setError(getApiErrorMessage(caughtError, 'Could not load recipes.'))
         }
       } finally {
         if (isActive) {
@@ -51,6 +53,7 @@ export function useRecipesHook(filters: CatalogRecipeFilters = {}): UseRecipesRe
 
     return () => {
       isActive = false
+      abortController.abort()
     }
   }, [cookingTime, difficulty, ingredients, search, type])
 

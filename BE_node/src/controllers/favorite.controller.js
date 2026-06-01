@@ -1,4 +1,5 @@
 import { prisma } from "../config/prisma.js"
+import { sendError, sendSuccess } from "../utils/apiResponse.js"
 
 const favoriteRecipeInclude = {
   recipe: {
@@ -26,7 +27,7 @@ const getFavoriteRecipes = async (req, res, next) => {
     },
   })
 
-  return res.status(200).json({ favorites })
+  return sendSuccess(res, 200, { favorites })
 }
 
 const addFavoriteRecipe = async (req, res, next) => {
@@ -38,7 +39,7 @@ const addFavoriteRecipe = async (req, res, next) => {
   })
 
   if (!recipe) {
-    return res.status(404).json({ message: "Recipe not found" })
+    return sendError(res, 404, { message: "Recipe not found" })
   }
 
   const favorite = await prisma.favoriteRecipe.upsert({
@@ -56,7 +57,7 @@ const addFavoriteRecipe = async (req, res, next) => {
     include: favoriteRecipeInclude,
   })
 
-  return res.status(201).json({
+  return sendSuccess(res, 201, {
     message: "Recipe added to favorites",
     favorite,
   })
@@ -75,7 +76,7 @@ const removeFavoriteRecipe = async (req, res, next) => {
   })
 
   if (!favorite) {
-    return res.status(404).json({ message: "Favorite recipe not found" })
+    return sendError(res, 404, { message: "Favorite recipe not found" })
   }
 
   await prisma.favoriteRecipe.delete({
@@ -87,7 +88,7 @@ const removeFavoriteRecipe = async (req, res, next) => {
     },
   })
 
-  return res.status(200).json({ message: "Recipe removed from favorites" })
+  return sendSuccess(res, 200, { message: "Recipe removed from favorites" })
 }
 
 export { addFavoriteRecipe, getFavoriteRecipes, removeFavoriteRecipe }

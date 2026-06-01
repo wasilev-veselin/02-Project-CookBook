@@ -1,21 +1,26 @@
-import axios from 'axios'
-import { API_BASE_URL } from '../../../config/env'
+import { z } from 'zod'
+import { apiClient } from '../../../shared/api/apiClient'
+import { parseApiData } from '../../../shared/api/parseApiData'
 
-export type AuthUser = {
-  id?: number
-  username: string
-  email: string
-}
+const authUserSchema = z.object({
+  id: z.number().optional(),
+  username: z.string(),
+  email: z.string(),
+})
 
-export type LoginResponse = {
-  message: string
-  user: AuthUser
-}
+const loginResponseSchema = z.object({
+  message: z.string(),
+  user: authUserSchema,
+})
 
-export type RegisterResponse = {
-  status: string
-  user: AuthUser
-}
+const registerResponseSchema = z.object({
+  status: z.string(),
+  user: authUserSchema,
+})
+
+export type AuthUser = z.infer<typeof authUserSchema>
+export type LoginResponse = z.infer<typeof loginResponseSchema>
+export type RegisterResponse = z.infer<typeof registerResponseSchema>
 
 export type LoginPayload = {
   email: string
@@ -28,23 +33,18 @@ export type RegisterPayload = {
   password: string
 }
 
-const authApiClient = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true,
-})
-
 export async function loginService(payload: LoginPayload): Promise<LoginResponse> {
-  const { data } = await authApiClient.post<LoginResponse>('/auth/login', payload)
+  const { data } = await apiClient.post<unknown>('/auth/login', payload)
 
-  return data
+  return parseApiData(loginResponseSchema, data)
 }
 
 export async function registerService(payload: RegisterPayload): Promise<RegisterResponse> {
-  const { data } = await authApiClient.post<RegisterResponse>('/auth/register', payload)
+  const { data } = await apiClient.post<unknown>('/auth/register', payload)
 
-  return data
+  return parseApiData(registerResponseSchema, data)
 }
 
 export async function logoutService(): Promise<void> {
-  await authApiClient.post('/auth/logout')
+  await apiClient.post('/auth/logout')
 }

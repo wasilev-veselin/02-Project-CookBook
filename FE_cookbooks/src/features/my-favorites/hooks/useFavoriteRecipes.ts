@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { getApiErrorMessage } from '../../../shared/api/apiErrors'
 import {
   getFavoriteRecipesService,
   removeFavoriteRecipeService,
@@ -19,6 +20,7 @@ export function useFavoriteRecipes(shouldLoad: boolean): UseFavoriteRecipesResul
 
   useEffect(() => {
     let isActive = true
+    const abortController = new AbortController()
 
     async function loadFavoriteRecipes() {
       if (!shouldLoad) {
@@ -32,14 +34,16 @@ export function useFavoriteRecipes(shouldLoad: boolean): UseFavoriteRecipesResul
         setIsLoading(true)
         setError(null)
 
-        const favoriteRecipes = await getFavoriteRecipesService()
+        const favoriteRecipes = await getFavoriteRecipesService({
+          signal: abortController.signal,
+        })
 
         if (isActive) {
           setRecipes(favoriteRecipes)
         }
-      } catch {
+      } catch (caughtError) {
         if (isActive) {
-          setError('Неуспешно зареждане на любими рецепти.')
+          setError(getApiErrorMessage(caughtError, 'Неуспешно зареждане на любими рецепти.'))
         }
       } finally {
         if (isActive) {
@@ -52,6 +56,7 @@ export function useFavoriteRecipes(shouldLoad: boolean): UseFavoriteRecipesResul
 
     return () => {
       isActive = false
+      abortController.abort()
     }
   }, [shouldLoad])
 
