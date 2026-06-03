@@ -1,5 +1,6 @@
 import { prisma } from "../config/prisma.js"
-import { sendError, sendSuccess } from "../utils/apiResponse.js"
+import { AppError } from "../errors/AppError.js"
+import { sendSuccess } from "../utils/apiResponse.js"
 
 const favoriteRecipeInclude = {
   recipe: {
@@ -39,7 +40,7 @@ const addFavoriteRecipe = async (req, res, next) => {
   })
 
   if (!recipe) {
-    return sendError(res, 404, { code: "RECIPE_NOT_FOUND", message: "Recipe not found" })
+    throw new AppError(404, "RECIPE_NOT_FOUND", "Recipe not found")
   }
 
   const favorite = await prisma.favoriteRecipe.upsert({
@@ -76,7 +77,7 @@ const removeFavoriteRecipe = async (req, res, next) => {
   })
 
   if (!favorite) {
-    return sendError(res, 404, { code: "FAVORITE_NOT_FOUND", message: "Favorite recipe not found" })
+    throw new AppError(404, "FAVORITE_NOT_FOUND", "Favorite recipe not found")
   }
 
   await prisma.favoriteRecipe.delete({

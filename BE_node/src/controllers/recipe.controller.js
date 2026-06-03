@@ -1,5 +1,6 @@
 import { prisma } from "../config/prisma.js";
-import { sendError, sendSuccess } from "../utils/apiResponse.js";
+import { AppError } from "../errors/AppError.js";
+import { sendSuccess } from "../utils/apiResponse.js";
 
 const recipeInclude = {
     author: {
@@ -112,7 +113,7 @@ const getRecipeById = async (req, res, next) => {
     });
 
     if (!recipe) {
-        return sendError(res, 404, { code: "RECIPE_NOT_FOUND", message: "Recipe not found" });
+        throw new AppError(404, "RECIPE_NOT_FOUND", "Recipe not found");
     }
 
     res.set("Cache-Control", "public, max-age=0, must-revalidate");

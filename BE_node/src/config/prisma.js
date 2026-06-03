@@ -9,13 +9,37 @@ if (!connectionString) {
 }
 
 const adapter = new PrismaPg({ connectionString })
+const isDevelopment = process.env.NODE_ENV === "development"
+
+const getPositiveNumberFromEnv = (name, fallbackValue) => {
+  const parsedValue = Number(process.env[name])
+
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : fallbackValue
+}
+
+const slowQueryThresholdMs = getPositiveNumberFromEnv("SLOW_QUERY_THRESHOLD_MS", 200)
 
 export const prisma = new PrismaClient({
   adapter,
-  log:
-    process.env.NODE_ENV === "development"
-      ? ["query", "info", "warn", "error"]
-      : ["warn", "error"],
+  log: isDevelopment
+    ? [{ emit: "event", level: "query" }, "info", "warn", "error"]
+    : [{ emit: "event", level: "query" }, "warn", "error"],
+})
+
+prisma.$on("query", (event) => {
+  if (event.duration < slowQueryThresholdMs) {
+    return
+  }
+
+  logger.warn("Slow database query", {
+    event: "SLOW_DATABASE_QUERY",
+    durationMs: event.duration,
+    thresholdMs: slowQueryThresholdMs,
+    query: event.query,
+    ...(isDevelopment && {
+      params: event.params,
+    }),
+  })
 })
 
 export const connectDB = async () => {

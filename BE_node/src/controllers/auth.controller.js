@@ -1,8 +1,9 @@
 import { prisma } from "../config/prisma.js";
 import bcrypt from "bcryptjs";
 
+import { AppError } from "../errors/AppError.js";
 import { generateToken } from "../utils/generateToken.js";
-import { sendError, sendSuccess } from "../utils/apiResponse.js";
+import { sendSuccess } from "../utils/apiResponse.js";
 
 const register = async (req, res, next) => {
     const { username, email, password } = req.body;
@@ -13,7 +14,7 @@ const register = async (req, res, next) => {
     })
 
     if (userExits) {
-        return sendError(res, 400, { code: "EMAIL_ALREADY_EXISTS", message: "Email already exists" })
+        throw new AppError(400, "EMAIL_ALREADY_EXISTS", "Email already exists")
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -50,13 +51,13 @@ const login = async (req, res, next) => {
     })
 
     if (!userExits) {
-        return sendError(res, 401, { code: "INVALID_CREDENTIALS", message: "Invalid credentials" })
+        throw new AppError(401, "INVALID_CREDENTIALS", "Invalid credentials")
     }
 
     const isPasswordValid = await bcrypt.compare(password, userExits.passwordHash);
 
     if (!isPasswordValid) {
-        return sendError(res, 401, { code: "INVALID_CREDENTIALS", message: "Invalid credentials" })
+        throw new AppError(401, "INVALID_CREDENTIALS", "Invalid credentials")
     }
 
 

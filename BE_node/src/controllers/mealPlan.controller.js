@@ -1,5 +1,6 @@
 import { prisma } from "../config/prisma.js";
-import { sendError, sendSuccess } from "../utils/apiResponse.js";
+import { AppError } from "../errors/AppError.js";
+import { sendSuccess } from "../utils/apiResponse.js";
 
 const getDayRange = (date) => {
   const startDate = new Date(`${date}T00:00:00.000Z`);
@@ -54,7 +55,7 @@ const updateMealPlan = async (req, res, next) => {
   });
 
   if (!mealPlan || mealPlan.userId !== req.user.id) {
-    return sendError(res, 404, { code: "MEAL_PLAN_NOT_FOUND", message: "Meal plan not found" });
+    throw new AppError(404, "MEAL_PLAN_NOT_FOUND", "Meal plan not found");
   }
 
   if (recipeId) {
@@ -64,7 +65,7 @@ const updateMealPlan = async (req, res, next) => {
     });
 
     if (!recipe) {
-      return sendError(res, 404, { code: "RECIPE_NOT_FOUND", message: "Recipe not found" });
+      throw new AppError(404, "RECIPE_NOT_FOUND", "Recipe not found");
     }
   }
 
@@ -103,7 +104,7 @@ const deleteMealPlan = async (req, res, next) => {
   });
 
   if (!mealPlan || mealPlan.userId !== req.user.id) {
-    return sendError(res, 404, { code: "MEAL_PLAN_NOT_FOUND", message: "Meal plan not found" });
+    throw new AppError(404, "MEAL_PLAN_NOT_FOUND", "Meal plan not found");
   }
 
   await prisma.mealPlan.delete({

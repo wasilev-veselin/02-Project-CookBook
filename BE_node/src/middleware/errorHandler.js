@@ -1,7 +1,16 @@
 import { randomUUID } from "node:crypto"
 import { Prisma } from "@prisma/client"
+import { AppError } from "../errors/AppError.js"
 import { sendError } from "../utils/apiResponse.js"
 import { logger } from "../utils/logger.js"
+
+const getPositiveNumberFromEnv = (name, fallbackValue) => {
+  const parsedValue = Number(process.env[name])
+
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : fallbackValue
+}
+
+const slowRequestThresholdMs = getPositiveNumberFromEnv("SLOW_REQUEST_THRESHOLD_MS", 1000)
 
 // Adds a request id and logs when each request starts and finishes.
 export function requestLogger(request, response, next) {
@@ -16,6 +25,8 @@ export function requestLogger(request, response, next) {
   })
 
   response.on("finish", () => {
+    const durationMs = Date.now() - startedAt
+
     // Runs only when Express has sent a response.
     logger.info("Request finished", {
       requestId: request.requestId,
@@ -23,8 +34,21 @@ export function requestLogger(request, response, next) {
       method: request.method,
       path: request.originalUrl,
       statusCode: response.statusCode,
-      durationMs: Date.now() - startedAt,
+      durationMs,
     })
+
+    if (durationMs >= slowRequestThresholdMs) {
+      logger.warn("Slow request", {
+        requestId: request.requestId,
+        event: "SLOW_REQUEST",
+        method: request.method,
+        path: request.originalUrl,
+        statusCode: response.statusCode,
+        durationMs,
+        thresholdMs: slowRequestThresholdMs,
+        userId: request.user?.id,
+      })
+    }
   })
 
   response.on("close", () => {
@@ -70,15 +94,31 @@ export function requestTimeout(timeoutMs = 15000) {
 
 // Converts unmatched routes into normal errors handled by errorHandler.
 export function notFoundHandler(request, response, next) {
-  const error = new Error(`Route not found: ${request.method} ${request.originalUrl}`)
-  error.statusCode = 404
-  next(error)
+  next(new AppError(404, "ROUTE_NOT_FOUND", `Route not found: ${request.method} ${request.originalUrl}`))
 }
 
 // Final Express error middleware. Keep this after all routes and fallback handlers.
 export function errorHandler(error, request, response, next) {
   if (response.headersSent) {
     return next(error)
+  }
+
+  if (error instanceof AppError) {
+    logger.warn("Application error", {
+      requestId: request.requestId,
+      method: request.method,
+      path: request.originalUrl,
+      statusCode: error.statusCode,
+      code: error.code,
+      message: error.message,
+    })
+
+    return sendError(response, error.statusCode, {
+      code: error.code,
+      message: error.message,
+      requestId: request.requestId,
+      details: error.details,
+    })
   }
 
   // express.json() throws SyntaxError before route handlers run when JSON is malformed.
@@ -115,6 +155,18 @@ export function errorHandler(error, request, response, next) {
     }
   }
 
+  if (
+    error instanceof Prisma.PrismaClientValidationError ||
+    error instanceof Prisma.PrismaClientKnownRequestError ||
+    error instanceof Prisma.PrismaClientUnknownRequestError ||
+    error instanceof Prisma.PrismaClientInitializationError ||
+    error instanceof Prisma.PrismaClientRustPanicError
+  ) {
+    error.statusCode = error.statusCode ?? 500
+    error.apiCode = error.apiCode ?? "DATABASE_ERROR"
+    error.publicMessage = error.apiCode === "DATABASE_ERROR" ? "Database error" : error.message
+  }
+
   const statusCode = error.statusCode || error.status || 500
   const isDevelopment = process.env.NODE_ENV === "development"
 
@@ -131,7 +183,7 @@ export function errorHandler(error, request, response, next) {
   // In production, hide internal 500 details from the client.
   sendError(response, statusCode, {
     code: error.apiCode ?? (statusCode === 500 ? "INTERNAL_SERVER_ERROR" : undefined),
-    message: statusCode === 500 && !isDevelopment ? "Internal server error" : error.message,
+    message: error.publicMessage ?? (statusCode === 500 && !isDevelopment ? "Internal server error" : error.message),
     requestId: request.requestId,
     ...(isDevelopment && {
       debug: {

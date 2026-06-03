@@ -1,5 +1,6 @@
 import { prisma } from "../config/prisma.js"
-import { sendError, sendSuccess } from "../utils/apiResponse.js"
+import { AppError } from "../errors/AppError.js"
+import { sendSuccess } from "../utils/apiResponse.js"
 
 const commentInclude = {
   author: {
@@ -20,7 +21,7 @@ const createComment = async (req, res, next) => {
   })
 
   if (!recipe) {
-    return sendError(res, 404, { code: "RECIPE_NOT_FOUND", message: "Recipe not found" })
+    throw new AppError(404, "RECIPE_NOT_FOUND", "Recipe not found")
   }
 
   const comment = await prisma.comment.create({
@@ -51,7 +52,7 @@ const deleteComment = async (req, res, next) => {
   })
 
   if (!comment || comment.authorId !== req.user.id) {
-    return sendError(res, 404, { code: "COMMENT_NOT_FOUND", message: "Comment not found" })
+    throw new AppError(404, "COMMENT_NOT_FOUND", "Comment not found")
   }
 
   await prisma.comment.delete({
