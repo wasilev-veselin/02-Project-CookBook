@@ -8,6 +8,7 @@ export const validateQuery = (schema) => {
       const isDevelopment = process.env.NODE_ENV === "development"
 
       const responseBody = {
+        code: "VALIDATION_ERROR",
         message: "Invalid query parameters",
       }
 

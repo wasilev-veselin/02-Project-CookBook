@@ -39,7 +39,7 @@ const addFavoriteRecipe = async (req, res, next) => {
   })
 
   if (!recipe) {
-    return sendError(res, 404, { message: "Recipe not found" })
+    return sendError(res, 404, { code: "RECIPE_NOT_FOUND", message: "Recipe not found" })
   }
 
   const favorite = await prisma.favoriteRecipe.upsert({
@@ -76,7 +76,7 @@ const removeFavoriteRecipe = async (req, res, next) => {
   })
 
   if (!favorite) {
-    return sendError(res, 404, { message: "Favorite recipe not found" })
+    return sendError(res, 404, { code: "FAVORITE_NOT_FOUND", message: "Favorite recipe not found" })
   }
 
   await prisma.favoriteRecipe.delete({

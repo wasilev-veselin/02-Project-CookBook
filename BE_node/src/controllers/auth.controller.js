@@ -13,7 +13,7 @@ const register = async (req, res, next) => {
     })
 
     if (userExits) {
-        return sendError(res, 400, { message: "Email already exists" })
+        return sendError(res, 400, { code: "EMAIL_ALREADY_EXISTS", message: "Email already exists" })
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -50,13 +50,13 @@ const login = async (req, res, next) => {
     })
 
     if (!userExits) {
-        return sendError(res, 401, { message: "Invalid credentials" })
+        return sendError(res, 401, { code: "INVALID_CREDENTIALS", message: "Invalid credentials" })
     }
 
     const isPasswordValid = await bcrypt.compare(password, userExits.passwordHash);
 
     if (!isPasswordValid) {
-        return sendError(res, 401, { message: "Invalid credentials" })
+        return sendError(res, 401, { code: "INVALID_CREDENTIALS", message: "Invalid credentials" })
     }
 
 

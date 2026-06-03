@@ -28,7 +28,7 @@ export const protectRoute = async (request, response, next) => {
     const token = getTokenFromRequest(request);
 
     if (!token) {
-      return sendError(response, 401, { message: "Not authorized" });
+      return sendError(response, 401, { code: "UNAUTHORIZED", message: "Not authorized" });
     }
 
     if (!process.env.JWT_SECRET) {
@@ -47,14 +47,14 @@ export const protectRoute = async (request, response, next) => {
     });
 
     if (!user) {
-      return sendError(response, 401, { message: "Not authorized" });
+      return sendError(response, 401, { code: "UNAUTHORIZED", message: "Not authorized" });
     }
 
     request.user = user;
     next();
   } catch (error) {
     if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
-      return sendError(response, 401, { message: "Not authorized" });
+      return sendError(response, 401, { code: "UNAUTHORIZED", message: "Not authorized" });
     }
 
     next(error);

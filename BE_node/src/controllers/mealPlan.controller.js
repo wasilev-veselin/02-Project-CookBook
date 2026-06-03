@@ -54,7 +54,7 @@ const updateMealPlan = async (req, res, next) => {
   });
 
   if (!mealPlan || mealPlan.userId !== req.user.id) {
-    return sendError(res, 404, { message: "Meal plan not found" });
+    return sendError(res, 404, { code: "MEAL_PLAN_NOT_FOUND", message: "Meal plan not found" });
   }
 
   if (recipeId) {
@@ -64,7 +64,7 @@ const updateMealPlan = async (req, res, next) => {
     });
 
     if (!recipe) {
-      return sendError(res, 404, { message: "Recipe not found" });
+      return sendError(res, 404, { code: "RECIPE_NOT_FOUND", message: "Recipe not found" });
     }
   }
 
@@ -103,7 +103,7 @@ const deleteMealPlan = async (req, res, next) => {
   });
 
   if (!mealPlan || mealPlan.userId !== req.user.id) {
-    return sendError(res, 404, { message: "Meal plan not found" });
+    return sendError(res, 404, { code: "MEAL_PLAN_NOT_FOUND", message: "Meal plan not found" });
   }
 
   await prisma.mealPlan.delete({

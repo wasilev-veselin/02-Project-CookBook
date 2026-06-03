@@ -9,6 +9,7 @@ import { recipeRouter } from "./routes/recipe.route.js"
 import { mealPlanRouter } from "./routes/mealPlan.route.js"
 import { favoriteRouter } from "./routes/favorite.route.js"
 import { commentRouter } from "./routes/comment.route.js"
+import { logger } from "./utils/logger.js"
 
 const app = express()
 const port = process.env.PORT || 4000
@@ -52,7 +53,9 @@ app.use(notFoundHandler)
 app.use(errorHandler)
 
 const server = app.listen(port, () => {
-  console.log(`Cookbook API listening on http://localhost:${port}`)
+  logger.info("Cookbook API listening", {
+    url: `http://localhost:${port}`,
+  })
 })
 
 let isShuttingDown = false
@@ -71,12 +74,12 @@ const shutdown = async (exitCode = 0) => {
 }
 
 process.on("unhandledRejection", async (error) => {
-  console.error("Unhandled Rejection:", error)
+  logger.error("Unhandled rejection", { error })
   await shutdown(1)
 })
 
 process.on("uncaughtException", async (error) => {
-  console.error("Uncaught Exception:", error)
+  logger.error("Uncaught exception", { error })
   await shutdown(1)
 })
 
@@ -85,6 +88,6 @@ process.on("SIGINT", async () => {
 })
 
 process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, shutting down gracefully")
+  logger.info("SIGTERM received, shutting down gracefully")
   await shutdown(0)
 })

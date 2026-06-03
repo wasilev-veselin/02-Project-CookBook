@@ -112,7 +112,7 @@ const getRecipeById = async (req, res, next) => {
     });
 
     if (!recipe) {
-        return sendError(res, 404, { message: "Recipe not found" });
+        return sendError(res, 404, { code: "RECIPE_NOT_FOUND", message: "Recipe not found" });
     }
 
     res.set("Cache-Control", "public, max-age=0, must-revalidate");

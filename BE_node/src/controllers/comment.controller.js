@@ -20,7 +20,7 @@ const createComment = async (req, res, next) => {
   })
 
   if (!recipe) {
-    return sendError(res, 404, { message: "Recipe not found" })
+    return sendError(res, 404, { code: "RECIPE_NOT_FOUND", message: "Recipe not found" })
   }
 
   const comment = await prisma.comment.create({
@@ -51,7 +51,7 @@ const deleteComment = async (req, res, next) => {
   })
 
   if (!comment || comment.authorId !== req.user.id) {
-    return sendError(res, 404, { message: "Comment not found" })
+    return sendError(res, 404, { code: "COMMENT_NOT_FOUND", message: "Comment not found" })
   }
 
   await prisma.comment.delete({

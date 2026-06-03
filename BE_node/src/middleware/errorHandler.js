@@ -1,13 +1,14 @@
 import { randomUUID } from "node:crypto"
 import { Prisma } from "@prisma/client"
 import { sendError } from "../utils/apiResponse.js"
+import { logger } from "../utils/logger.js"
 
 // Adds a request id and logs when each request starts and finishes.
 export function requestLogger(request, response, next) {
   const startedAt = Date.now()
   request.requestId = request.headers["x-request-id"] || randomUUID()
 
-  console.log({
+  logger.info("Request started", {
     requestId: request.requestId,
     event: "START",
     method: request.method,
@@ -16,7 +17,7 @@ export function requestLogger(request, response, next) {
 
   response.on("finish", () => {
     // Runs only when Express has sent a response.
-    console.log({
+    logger.info("Request finished", {
       requestId: request.requestId,
       event: "FINISH",
       method: request.method,
@@ -29,7 +30,7 @@ export function requestLogger(request, response, next) {
   response.on("close", () => {
     // Helps detect aborted connections or handlers that never completed normally.
     if (!response.writableEnded) {
-      console.warn({
+      logger.warn("Request closed before finish", {
         requestId: request.requestId,
         event: "CLOSE_BEFORE_FINISH",
         method: request.method,
@@ -47,7 +48,7 @@ export function requestTimeout(timeoutMs = 15000) {
   return (request, response, next) => {
     response.setTimeout(timeoutMs, () => {
       if (!response.headersSent) {
-        console.error({
+        logger.error("Request timeout", {
           requestId: request.requestId,
           event: "REQUEST_TIMEOUT",
           method: request.method,
@@ -56,6 +57,7 @@ export function requestTimeout(timeoutMs = 15000) {
         })
 
         sendError(response, 503, {
+          code: "REQUEST_TIMEOUT",
           message: "Request timeout",
           requestId: request.requestId,
         })
@@ -82,11 +84,13 @@ export function errorHandler(error, request, response, next) {
   // express.json() throws SyntaxError before route handlers run when JSON is malformed.
   if (error instanceof SyntaxError && "body" in error) {
     error.statusCode = 400
+    error.apiCode = "INVALID_JSON_BODY"
     error.message = "Invalid JSON body"
   }
 
   if (error instanceof Prisma.PrismaClientValidationError) {
     error.statusCode = 400
+    error.apiCode = "PRISMA_VALIDATION_ERROR"
     error.message = "Invalid data provided"
   }
 
@@ -94,16 +98,19 @@ export function errorHandler(error, request, response, next) {
     if (error.code === "P2002") {
       const field = error.meta?.target?.[0] || "field"
       error.statusCode = 400
+      error.apiCode = "UNIQUE_CONSTRAINT_FAILED"
       error.message = `${field} already exists`
     }
 
     if (error.code === "P2003") {
       error.statusCode = 400
+      error.apiCode = "INVALID_RELATION"
       error.message = "Invalid reference: related record does not exist"
     }
 
     if (error.code === "P2025") {
       error.statusCode = 404
+      error.apiCode = "RECORD_NOT_FOUND"
       error.message = "Record not found"
     }
   }
@@ -112,7 +119,7 @@ export function errorHandler(error, request, response, next) {
   const isDevelopment = process.env.NODE_ENV === "development"
 
   // Logs are for developers/operators; response details are limited below.
-  console.error({
+  logger.error("API error", {
     requestId: request.requestId,
     method: request.method,
     path: request.originalUrl,
@@ -123,6 +130,7 @@ export function errorHandler(error, request, response, next) {
 
   // In production, hide internal 500 details from the client.
   sendError(response, statusCode, {
+    code: error.apiCode ?? (statusCode === 500 ? "INTERNAL_SERVER_ERROR" : undefined),
     message: statusCode === 500 && !isDevelopment ? "Internal server error" : error.message,
     requestId: request.requestId,
     ...(isDevelopment && {
